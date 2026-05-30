@@ -1,4 +1,4 @@
-// labels.ts — the exact strings from Requirement 10.1.
+// labels.ts — the exact interactive-control strings from Requirement 10.1.
 // Single source of truth: Kane flows and components both import from here.
 export const LABELS = {
   signUp: "Sign up",
@@ -8,3 +8,5 @@ export const LABELS = {
   skipADay: "Skip a day",
   logOut: "Log out",
 } as const;
+
+export type LabelKey = keyof typeof LABELS;
