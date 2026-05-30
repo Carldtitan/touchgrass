@@ -33,6 +33,14 @@ export class InMemoryProfileRepo implements ProfileRepo {
   }
 
   async create(userId: string, displayName: REDACTED Promise<Profile> {
+    // Display names are unique, case-insensitively — mirrors the DB unique index
+    // on lower(display_name). Reject collisions so offline dev/tests match prod.
+    const taken = [...this.profiles.values()].some(
+      (p) => p.displayName.toLowerCase() === displayName.toLowerCase(),
+    );
+    if (taken) {
+      throw new Error(`Display name already taken: ${displayName}`);
+    }
     // Initial profile invariant (Requirement 1.3): score 0, streak 0, no badges.
     const profile: Profile = {
       id: userId,

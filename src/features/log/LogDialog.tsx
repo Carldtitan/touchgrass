@@ -34,6 +34,7 @@ export function LogDialog({
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewIsVideo, setPreviewIsVideo] = useState(false);
   const [activity, setActivity] = useState<ActivityType | null>(null);
   const [taggable, setTaggable] = useState<Profile[]>([]);
   const [taggedIds, setTaggedIds] = useState<string[]>([]);
@@ -64,6 +65,7 @@ export function LogDialog({
       setActivity(null);
       setTaggedIds([]);
       setNote("");
+      setPreviewIsVideo(false);
       setPreviewUrl((url) => {
         if (url) URL.revokeObjectURL(url);
         return null;
@@ -75,6 +77,7 @@ export function LogDialog({
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setPhotoFile(file);
+    setPreviewIsVideo(file?.type.startsWith("video/") ?? false);
     setPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return file ? URL.createObjectURL(file) : null;
@@ -112,7 +115,7 @@ export function LogDialog({
               }}
             >
               <Loader2 size={16} className="spin" />
-              Uploading your photo…
+              Uploading your media…
             </div>
           )}
           {errors.form && (
@@ -135,29 +138,44 @@ export function LogDialog({
         noValidate
         style={{ display: "grid", gap: "var(--space-4)" }}
       >
-        {/* Photo input (Req 3.2, 10.2) — a real, visible file input so it can
-            be set both by a person and programmatically by an automated agent. */}
-        <Field label="Photo" htmlFor="hangout-photo" error={errors.photo}>
+        {/* Media input (Req 3.2, 10.2) — a real, visible file input so it can
+            be set both by a person and programmatically by an automated agent.
+            Accepts a photo or a short video. */}
+        <Field label="Photo or video" htmlFor="hangout-photo" error={errors.photo}>
           <div style={{ display: "grid", gap: "var(--space-2)" }}>
-            {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Selected hangout preview"
-                style={{
-                  width: "100%",
-                  maxHeight: 240,
-                  objectFit: "cover",
-                  borderRadius: "var(--radius)",
-                  border: "1px solid var(--color-border)",
-                }}
-              />
-            )}
+            {previewUrl &&
+              (previewIsVideo ? (
+                <video
+                  src={previewUrl}
+                  controls
+                  playsInline
+                  style={{
+                    width: "100%",
+                    maxHeight: 240,
+                    objectFit: "cover",
+                    borderRadius: "var(--radius)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt="Selected hangout preview"
+                  style={{
+                    width: "100%",
+                    maxHeight: 240,
+                    objectFit: "cover",
+                    borderRadius: "var(--radius)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                />
+              ))}
             <input
               ref={fileInputRef}
               id="hangout-photo"
               name="photo"
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={handleFile}
               style={{
                 width: "100%",
@@ -181,7 +199,7 @@ export function LogDialog({
                 }}
               >
                 <ImagePlus size={16} />
-                Add a photo from your hangout
+                Add a photo or video from your hangout
               </span>
             )}
           </div>

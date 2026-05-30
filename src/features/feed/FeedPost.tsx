@@ -1,5 +1,4 @@
 // FeedPost — a single hangout card (Requirements 4.2, 4.3, 4.4, 4.5, 10.4, 10.6).
-import { useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
 import { ACTIVITY_EMOJI } from "../../core/activities";
 import { LABELS } from "../../contracts/labels";
@@ -8,6 +7,7 @@ import type { CommentWithAuthor, HangoutWithPoster } from "../../data/types";
 import { Card } from "../../design-system/ui";
 import { InitialsAvatar } from "../../design-system/InitialsAvatar";
 import { CommentThread } from "./CommentThread";
+import { HangoutMedia } from "./HangoutMedia";
 import { timeAgo } from "./timeAgo";
 
 export function FeedPost({
@@ -25,8 +25,6 @@ export function FeedPost({
   canComment: boolean;
   onAddComment: (hangoutId: string, body: string) => Promise<boolean>;
 }) {
-  const [imageOk, setImageOk] = useState(true);
-
   return (
     <Card
       data-testid={TESTIDS.feedPost}
@@ -62,19 +60,12 @@ export function FeedPost({
         </div>
       </div>
 
-      {/* Photo (Req 4.3, 10.4) */}
-      <img
-        data-testid={TESTIDS.feedPostImage}
-        src={post.photoUrl}
-        alt={`${post.posterDisplayName}'s ${post.activityType} hangout`}
-        onError={() => setImageOk(false)}
-        style={{
-          width: "100%",
-          aspectRatio: "1 / 1",
-          objectFit: "cover",
-          background: "var(--color-surface)",
-          display: imageOk ? "block" : "none",
-        }}
+      {/* Photo or video (Req 4.3, 10.4) */}
+      <HangoutMedia
+        url={post.photoUrl}
+        testId={TESTIDS.feedPostImage}
+        label={`${post.posterDisplayName}'s ${post.activityType} hangout`}
+        style={{ aspectRatio: "1 / 1" }}
       />
 
       {/* Meta row */}

@@ -68,6 +68,12 @@ create index if not exists cheers_hangout_idx on public.cheers (hangout_id);
 create index if not exists comments_hangout_idx on public.comments (hangout_id);
 create index if not exists profiles_rank_idx on public.profiles (score desc, streak desc, display_name asc);
 
+-- Display names are unique, case-insensitively ("Ada" and "ada" cannot coexist).
+-- NOTE: a live database with pre-existing duplicate display names must be
+-- de-duplicated before this index can be created; otherwise creation fails.
+create unique index if not exists profiles_display_name_unique_idx
+  on public.profiles (lower(display_name));
+
 -- ============================================================
 -- Row Level Security
 -- ============================================================
@@ -90,6 +96,11 @@ create policy profiles_insert on public.profiles
 drop policy if exists profiles_update on public.profiles;
 create policy profiles_update on public.profiles
   for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+
+-- Owners may delete their own profile (supports test cleanup and account removal).
+drop policy if exists profiles_delete on public.profiles;
+create policy profiles_delete on public.profiles
+  for delete to authenticated using (id = auth.uid());
 
 -- hangouts: readable by any authenticated user; insert/delete by owner (supports rollback 10.5).
 drop policy if exists hangouts_select on public.hangouts;
@@ -155,6 +166,11 @@ create policy user_badges_select on public.user_badges
 drop policy if exists user_badges_insert on public.user_badges;
 create policy user_badges_insert on public.user_badges
   for insert to authenticated with check (user_id = auth.uid());
+
+-- Owners may delete their own badges (supports test cleanup).
+drop policy if exists user_badges_delete on public.user_badges;
+create policy user_badges_delete on public.user_badges
+  for delete to authenticated using (user_id = auth.uid());
 
 -- ============================================================
 -- Storage bucket: hangout-photos (public read) (3.6, 4.3, 10.4)

@@ -44,7 +44,7 @@ export function useLogHangout(onLogged?: (result: LoggedResult) => void) {
       note?: string;
     }) => {
       const nextErrors: LogHangoutErrors = {};
-      if (!params.photoFile) nextErrors.photo = "A photo is required"; // 3.3
+      if (!params.photoFile) nextErrors.photo = "A photo or video is required"; // 3.3
       if (!params.activity) nextErrors.activity = "An activity is required"; // 3.4
       if (nextErrors.photo || nextErrors.activity) {
         setErrors(nextErrors);
@@ -79,7 +79,7 @@ export function useLogHangout(onLogged?: (result: LoggedResult) => void) {
       setErrors({
         form:
           res.reason === "upload-failed"
-            ? "Photo upload failed. Please try again."
+            ? "Media upload failed. Please try again."
             : "Could not log your hangout. Please try again.",
       });
       return { ok: false as const };
