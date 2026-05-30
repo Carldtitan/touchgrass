@@ -4,19 +4,26 @@ import { Heart, MessageCircle } from "lucide-react";
 import { ACTIVITY_EMOJI } from "../../core/activities";
 import { LABELS } from "../../contracts/labels";
 import { TESTIDS } from "../../contracts/testids";
-import type { HangoutWithPoster } from "../../data/types";
+import type { CommentWithAuthor, HangoutWithPoster } from "../../data/types";
 import { Card } from "../../design-system/ui";
 import { InitialsAvatar } from "../../design-system/InitialsAvatar";
+import { CommentThread } from "./CommentThread";
 import { timeAgo } from "./timeAgo";
 
 export function FeedPost({
   post,
   hasCheered,
   onCheer,
+  comments,
+  canComment,
+  onAddComment,
 }: {
   post: HangoutWithPoster;
   hasCheered: boolean;
   onCheer: (id: string) => void;
+  comments: CommentWithAuthor[];
+  canComment: boolean;
+  onAddComment: (hangoutId: string, body: string) => Promise<boolean>;
 }) {
   const [imageOk, setImageOk] = useState(true);
 
@@ -130,6 +137,7 @@ export function FeedPost({
           {LABELS.cheer} {post.cheerCount}
         </button>
         <span
+          data-testid={TESTIDS.commentCount}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -143,6 +151,13 @@ export function FeedPost({
           {post.commentCount}
         </span>
       </div>
+
+      {/* Comment thread + inline add (Req 4.4). First comment is the poster's note. */}
+      <CommentThread
+        comments={comments}
+        canComment={canComment}
+        onAdd={(body) => onAddComment(post.id, body)}
+      />
     </Card>
   );
 }

@@ -1,9 +1,9 @@
-// useAuth — session state + sign up / log in / log out (Requirements 1, 2).
+// AuthProvider — session state + sign up / log in / log out (Requirements 1, 2).
 // Holds no business rules: validation comes from the pure core, persistence from
-// the repositories. Exposes `status` to drive routing (2.7, 2.8).
+// the repositories. Exposes `status` to drive routing (2.7, 2.8). The context,
+// types, and useAuth hook live in useAuth.ts so this file only exports a component
+// (react-refresh/only-export-components).
 import {
-  createContext,
-  useContext,
   useCallback,
   useEffect,
   useMemo,
@@ -20,8 +20,7 @@ import {
 import type { Profile } from "../data/types";
 import type { AuthSession } from "../data/repositories";
 import { useRepositories } from "./RepositoriesContext";
-
-export type AuthStatus = "loading" | "authed" | "anon";
+import { AuthContext, type AuthContextValue, type AuthStatus } from "./useAuth";
 
 // Map Track A's structured validation errors to user-facing copy.
 function signUpMessage(error: SignUpError): string {
@@ -59,30 +58,6 @@ function authErrorMessage(err: unknown, context: "signup" | "login"): string {
     ? "Sign up could not be completed"
     : "Log in could not be completed";
 }
-
-export interface FieldError<F extends string> {
-  field: F;
-  message: string;
-}
-
-interface AuthContextValue {
-  status: AuthStatus;
-  session: AuthSession | null;
-  profile: Profile | null;
-  signUp: (
-    email: string,
-    password: string,
-    displayName: string,
-  ) => Promise<{ ok: true } | { ok: false; error: FieldError<SignUpError["field"] | "form"> }>;
-  logIn: (
-    email: string,
-    password: string,
-  ) => Promise<{ ok: true } | { ok: false; error: FieldError<LoginError["field"] | "form"> }>;
-  logOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const repos = useRepositories();
@@ -201,11 +176,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
-  return ctx;
 }

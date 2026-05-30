@@ -14,7 +14,7 @@ import { FeedPost } from "./FeedPost";
 export function HomeFeed({ onOpenLog }: { onOpenLog: () => void }) {
   const { profile } = useAuth();
   const { evaluationDate, skipADay } = useEvaluationClock();
-  const { posts, state, cheered, cheer } = useFeed();
+  const { posts, state, cheered, cheer, comments, addComment } = useFeed();
 
   const streak = profile?.streak ?? 0;
   const touchedToday = profile?.lastLogDate === evaluationDate;
@@ -143,6 +143,9 @@ export function HomeFeed({ onOpenLog }: { onOpenLog: () => void }) {
               post={post}
               hasCheered={cheered.has(post.id)}
               onCheer={cheer}
+              comments={comments[post.id] ?? []}
+              canComment={!!profile}
+              onAddComment={addComment}
             />
           ))}
         </div>

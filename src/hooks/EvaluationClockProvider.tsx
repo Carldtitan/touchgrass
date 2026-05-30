@@ -1,29 +1,17 @@
-// useEvaluationClock — owns the skipped-days offset (Requirement 8).
+// EvaluationClockProvider — owns the skipped-days offset (Requirement 8).
 // Keeps the streak core pure: the evaluation date is derived here (today + offset)
-// and passed into the pure functions. On skip, re-evaluates and persists.
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+// and passed into the pure functions. On skip, re-evaluates and persists. The
+// context, type, and useEvaluationClock hook live in useEvaluationClock.ts so this
+// file only exports a component (react-refresh/only-export-components).
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { addDays, reevaluate } from "../core/streak";
 import { useAuth } from "./useAuth";
 import { useRepositories } from "./RepositoriesContext";
+import { EvaluationClockContext } from "./useEvaluationClock";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
-
-interface EvaluationClockValue {
-  evaluationDate: string;
-  skippedDays: number;
-  skipADay: () => Promise<void>;
-}
-
-const EvaluationClockContext = createContext<EvaluationClockValue | null>(null);
 
 export function EvaluationClockProvider({ children }: { children: ReactNode }) {
   const repos = useRepositories();
@@ -63,15 +51,4 @@ export function EvaluationClockProvider({ children }: { children: ReactNode }) {
       {children}
     </EvaluationClockContext.Provider>
   );
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useEvaluationClock(): EvaluationClockValue {
-  const ctx = useContext(EvaluationClockContext);
-  if (!ctx) {
-    throw new Error(
-      "useEvaluationClock must be used within an EvaluationClockProvider",
-    );
-  }
-  return ctx;
 }
