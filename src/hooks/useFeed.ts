@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { HangoutWithPoster } from "../data/types";
 import { useAuth } from "./useAuth";
+import { useFeedRefresh } from "./FeedRefreshContext";
 import { useRepositories } from "./RepositoriesContext";
 
 export type LoadState = "loading" | "ready" | "error";
@@ -9,6 +10,7 @@ export type LoadState = "loading" | "ready" | "error";
 export function useFeed() {
   const repos = useRepositories();
   const { session } = useAuth();
+  const { signal } = useFeedRefresh();
   const [posts, setPosts] = useState<HangoutWithPoster[]>([]);
   const [state, setState] = useState<LoadState>("loading");
   const [cheered, setCheered] = useState<Set<string>>(new Set());
@@ -24,9 +26,19 @@ export function useFeed() {
     }
   }, [repos]);
 
+  // Initial load.
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Refetch when a log (or other mutation) requests it. A short delayed second
+  // fetch covers read-after-write timing so a just-created post reliably shows.
+  useEffect(() => {
+    if (signal === 0) return;
+    void load();
+    const t = setTimeout(() => void load(), 800);
+    return () => clearTimeout(t);
+  }, [signal, load]);
 
   const cheer = useCallback(
     async (hangoutId: string) => {

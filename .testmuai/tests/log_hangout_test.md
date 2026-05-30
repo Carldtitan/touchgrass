@@ -15,13 +15,13 @@ Self-contained: signs up its own fresh user first.
 Go to http://localhost:3000
 
 ## Step 2
-Sign up a fresh user: click "Sign up", enter a fresh unique email that is different on every run by including a large random number, for example kane-log-<random-number>@example.com (generate a new random number each run), password grass1234, and display name Kane Logger, then submit.
+Sign up a fresh user: click "Sign up", enter the email {{email}}, password grass1234, and display name Kane Logger, then submit.
 
 ## Step 3
 Open the log dialog by clicking the center Log control in the bottom navigation bar.
 
 ## Step 4
-Select a photo file for the photo input and choose the Gym activity, which is worth 20 points.
+Set the photo file input to the local file at .testmuai/tests/fixtures/hangout.jpg, then choose the Gym activity, which is worth 20 points.
 
 ## Step 5
 Submit by clicking "Log it".

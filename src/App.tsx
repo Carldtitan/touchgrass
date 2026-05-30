@@ -12,6 +12,7 @@ import {
 } from "./hooks/RepositoriesContext";
 import { AuthProvider } from "./hooks/useAuth";
 import { EvaluationClockProvider } from "./hooks/useEvaluationClock";
+import { FeedRefreshProvider } from "./hooks/FeedRefreshContext";
 import { AppRoutes } from "./features/AppRoutes";
 
 export function App() {
@@ -38,9 +39,11 @@ function ConfiguredApp() {
     <RepositoriesProvider repositories={repositories}>
       <AuthProvider>
         <EvaluationClockProvider>
-          <AppShell>
-            <AppRoutes />
-          </AppShell>
+          <FeedRefreshProvider>
+            <AppShell>
+              <AppRoutes />
+            </AppShell>
+          </FeedRefreshProvider>
         </EvaluationClockProvider>
       </AuthProvider>
     </RepositoriesProvider>
