@@ -1,7 +1,8 @@
 {
+  "enabled": true,
   "name": "Contract Drift Guard",
-  "version": "1.0.0",
   "description": "When a shared label, test ID, or copy string changes, updates every Kane flow that references the old value so flows and components stay in lockstep.",
+  "version": "1",
   "when": {
     "type": "fileEdited",
     "patterns": [

@@ -1,7 +1,8 @@
 {
+  "enabled": true,
   "name": "Replay Cache Commit Reminder",
-  "version": "1.0.0",
   "description": "When Kane writes a new output/replay folder, reminds to commit it so the run is reproducible for the demo.",
+  "version": "1",
   "when": {
     "type": "fileCreated",
     "patterns": [

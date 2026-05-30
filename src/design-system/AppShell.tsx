@@ -3,17 +3,7 @@ import type { ReactNode } from "react";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div
-      style={{
-        maxWidth: "var(--app-max-width)",
-        margin: "0 auto",
-        minHeight: "100vh",
-        background: "var(--color-bg)",
-        borderLeft: "1px solid var(--color-border)",
-        borderRight: "1px solid var(--color-border)",
-        position: "relative",
-      }}
-    >
+    <div className="relative mx-auto min-h-screen max-w-app border-x border-border bg-bg font-sans">
       {children}
     </div>
   );
