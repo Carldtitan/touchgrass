@@ -12,7 +12,7 @@ The work is split into a shared foundation that is frozen first, then three inde
 
 ### Parallelization & Git Workflow
 
-- Remote: `https://github.com/Ajodo-Godson/Kane_Kiro`
+- Remote: `https://github.com/Ajodo-Godson/TouchGrass`
 - The **shared foundation (Phase 0) is done first by one person and merged to `main`** before the tracks fan out. Freezing the contracts (`labels.ts`, `testids.ts`, `copy.ts`), domain types, and repository interfaces up front is what lets the three tracks proceed without blocking each other or fighting over the same files.
 - Each track runs on its own feature branch: `feat/core-data` (A), `feat/ui` (B), `feat/design-system-loop` (C).
 - Each developer **pulls/merges `main` into their branch regularly** to stay in sync and minimize conflicts, then opens a **pull request** when their track is demo-ready.
@@ -27,7 +27,7 @@ The work is split into a shared foundation that is frozen first, then three inde
 
 - [ ] 1. Bootstrap the project and freeze shared contracts
   - [ ] 1.1 Clone the repo and create the foundation branch
-    - `git clone https://github.com/Ajodo-Godson/Kane_Kiro` and `cd` into it
+    - `git clone https://github.com/Ajodo-Godson/TouchGrass` and `cd` into it
     - `git checkout -b chore/shared-foundation`
     - _Requirements: 11.3_
 
