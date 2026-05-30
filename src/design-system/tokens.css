@@ -48,3 +48,13 @@ button {
   font-family: inherit;
   transition: background var(--transition), transform var(--transition);
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
