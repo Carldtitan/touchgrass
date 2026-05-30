@@ -12,6 +12,7 @@ export type AppRepositories = Repositories & { auth: AuthRepo };
 
 export const RepositoriesContext = createContext<AppRepositories | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRepositories(): AppRepositories {
   const repos = useContext(RepositoriesContext);
   if (!repos) {

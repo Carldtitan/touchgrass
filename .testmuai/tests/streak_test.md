@@ -14,7 +14,7 @@ Kane confirms the rendered number. Self-contained: signs up its own fresh user.
 Go to http://localhost:3000
 
 ## Step 2
-Sign up a fresh user: click "Sign up", enter a unique email like kane-streak-20260530@example.com, password grass1234, and display name Kane Streaker, then submit.
+Sign up a fresh user: click "Sign up", enter a fresh unique email that is different on every run by including a large random number, for example kane-streak-<random-number>@example.com (generate a new random number each run), password grass1234, and display name Kane Streaker, then submit.
 
 ## Step 3
 Log a hangout: open the log dialog from the center Log control, select a photo, choose the Hike activity worth 50 points, and click "Log it".

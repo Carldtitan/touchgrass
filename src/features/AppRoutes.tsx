@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { LoggedResult } from "../hooks/useLogHangout";
 import { useAuth } from "../hooks/useAuth";
+import { useFeedRefresh } from "../hooks/FeedRefreshContext";
 import { AuthScreen } from "./auth/AuthScreen";
 import { BottomTabBar, type Tab } from "./nav/BottomTabBar";
 import { HomeFeed } from "./feed/HomeFeed";
@@ -13,6 +14,7 @@ import { Celebration } from "./log/Celebration";
 
 export function AppRoutes() {
   const { status, logOut } = useAuth();
+  const { requestRefresh } = useFeedRefresh();
   const [tab, setTab] = useState<Tab>("home");
   const [logOpen, setLogOpen] = useState(false);
   const [celebration, setCelebration] = useState<LoggedResult | null>(null);
@@ -64,6 +66,8 @@ export function AppRoutes() {
         onLogged={(result) => {
           setLogOpen(false);
           setCelebration(result);
+          setTab("home"); // ensure the feed is the visible tab
+          requestRefresh(); // refetch so the new post appears (Req 4.1)
           setFeedKey((k) => k + 1);
         }}
       />

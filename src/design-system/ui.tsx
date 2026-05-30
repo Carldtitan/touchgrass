@@ -185,16 +185,20 @@ export function Field({
 }
 
 // Dialog — simple accessible modal overlay (mirrors shadcn Dialog surface).
+// The body scrolls; an optional footer stays pinned so the primary action
+// (e.g. "Log it") is always reachable regardless of content height.
 export function Dialog({
   open,
   onClose,
   title,
   children,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  footer?: ReactNode;
 }) {
   if (!open) return null;
   return (
@@ -222,16 +226,46 @@ export function Dialog({
           background: "var(--color-bg)",
           borderTopLeftRadius: "var(--radius)",
           borderTopRightRadius: "var(--radius)",
-          padding: "var(--space-6)",
           display: "flex",
           flexDirection: "column",
-          gap: "var(--space-4)",
           maxHeight: "90vh",
-          overflowY: "auto",
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 20, color: "var(--color-text)" }}>{title}</h2>
-        {children}
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 20,
+            color: "var(--color-text)",
+            padding: "var(--space-6) var(--space-6) var(--space-4)",
+          }}
+        >
+          {title}
+        </h2>
+        {/* Scrollable body */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-4)",
+            padding: "0 var(--space-6)",
+            overflowY: "auto",
+            flex: 1,
+          }}
+        >
+          {children}
+        </div>
+        {/* Pinned footer so the primary action stays reachable (Req 3.2, 10.2) */}
+        {footer && (
+          <div
+            style={{
+              padding: "var(--space-4) var(--space-6)",
+              borderTop: "1px solid var(--color-border)",
+              background: "var(--color-bg)",
+            }}
+          >
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
