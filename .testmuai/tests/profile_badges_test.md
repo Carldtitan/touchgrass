@@ -13,7 +13,7 @@ after the first logged hangout. Self-contained: signs up its own fresh user.
 Go to http://localhost:3000
 
 ## Step 2
-Sign up a fresh user: click "Sign up", enter a unique email like kane-prof-20260530@example.com, password grass1234, and display name Kane Profiler, then submit.
+Sign up a fresh user: click "Sign up", enter a fresh unique email that is different on every run by including a large random number, for example kane-prof-<random-number>@example.com (generate a new random number each run), password grass1234, and display name Kane Profiler, then submit.
 
 ## Step 3
 Log one hangout: open the log dialog from the center Log control, select a photo, choose the Coffee activity worth 10 points, and click "Log it".
