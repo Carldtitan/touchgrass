@@ -18,22 +18,11 @@ export function useFeed() {
     try {
       const feed = await repos.hangouts.listFeed();
       setPosts(feed);
-      if (session) {
-        const mine = new Set<string>();
-        await Promise.all(
-          feed.map(async (p) => {
-            if (await repos.cheers.hasCheered(p.id, session.user.id)) {
-              mine.add(p.id);
-            }
-          }),
-        );
-        setCheered(mine);
-      }
       setState("ready");
     } catch {
       setState("error");
     }
-  }, [repos, session]);
+  }, [repos]);
 
   useEffect(() => {
     void load();

@@ -1,7 +1,7 @@
 // AppRoutes — session-driven routing + tab shell (Requirements 1.6, 2.2, 2.7, 2.8, 3.1).
 // Anon → AuthScreen; authed → tabs with the bottom bar, Log dialog, and celebration.
 import { useState } from "react";
-import type { CreateHangoutResult } from "../data/createHangout";
+import type { LoggedResult } from "../hooks/useLogHangout";
 import { useAuth } from "../hooks/useAuth";
 import { AuthScreen } from "./auth/AuthScreen";
 import { BottomTabBar, type Tab } from "./nav/BottomTabBar";
@@ -15,7 +15,7 @@ export function AppRoutes() {
   const { status, logOut } = useAuth();
   const [tab, setTab] = useState<Tab>("home");
   const [logOpen, setLogOpen] = useState(false);
-  const [celebration, setCelebration] = useState<CreateHangoutResult | null>(null);
+  const [celebration, setCelebration] = useState<LoggedResult | null>(null);
   const [feedKey, setFeedKey] = useState(0); // remount to reload after a log
 
   if (status === "loading") {

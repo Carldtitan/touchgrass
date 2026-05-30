@@ -1,0 +1,12 @@
+{
+  "name": "Kane Verify After Task",
+  "version": "1.0.0",
+  "description": "After a spec task completes, decides whether Kane is needed and runs the matching testmd flow if the task changed user-facing browser behavior. Requires the dev server running on http://localhost:3000.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task just completed. First confirm the app builds and unit tests pass (npm run typecheck && npm run test -- --run). If they fail, fix those first and do NOT run Kane.\n\nIf they pass, decide whether this task changed user-facing browser behavior. The Kane command form is `kane-cli testmd run <path> --agent --headless --timeout <seconds>` (timeout is in SECONDS):\n- Tasks 4.1, 4.2 (auth UI) → kane-cli testmd run .testmuai/tests/auth_test.md --agent --headless --timeout 120\n- Tasks 5.1, 5.2, 5.4 (log dialog, feed) → kane-cli testmd run .testmuai/tests/log_hangout_test.md --agent --headless --timeout 180\n- Tasks 6.1 (leaderboard) → kane-cli testmd run .testmuai/tests/leaderboard_test.md --agent --headless --timeout 180\n- Tasks 6.3 (profile/badges) → kane-cli testmd run .testmuai/tests/profile_badges_test.md --agent --headless --timeout 180\n- Tasks 6.5 (skip-a-day/streak UI) → kane-cli testmd run .testmuai/tests/streak_test.md --agent --headless --timeout 180\n- Tasks 4.3, 5.3, 5.5–5.8, 6.2, 6.4 (unit/property tests only) → skip Kane, say why.\n\nRead the final run_end line from the NDJSON output (status passed/failed). If passed, report 'Verified' with the run_dir path. If failed, read the reason and the failing screenshot, fix the app code (NEVER the test), and re-run. Stop after 3 attempts and ask the human.\n\nNever put a raw dollar sign in a Kane objective. Use 'USD' or the number."
+  }
+}

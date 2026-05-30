@@ -1,5 +1,7 @@
-// types.ts — shared domain types (Phase 0). Frozen so all tracks agree.
+// types.ts — shared domain types (design: TypeScript Domain Types).
 import type { ActivityType } from "../core/activities";
+
+export type { ActivityType };
 
 export interface Profile {
   id: string;

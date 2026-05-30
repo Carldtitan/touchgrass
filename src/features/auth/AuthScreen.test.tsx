@@ -4,12 +4,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RepositoriesProvider } from "../../hooks/RepositoriesContext";
 import { AuthProvider } from "../../hooks/useAuth";
-import { createFakeRepositories } from "../../data/fakes";
+import { createInMemoryRepositories } from "../../data/inMemory";
 import { AuthScreen } from "./AuthScreen";
 import { LABELS } from "../../contracts/labels";
 
 function renderAuth() {
-  const repos = createFakeRepositories();
+  const repos = createInMemoryRepositories();
   return render(
     <RepositoriesProvider repositories={repos}>
       <AuthProvider>

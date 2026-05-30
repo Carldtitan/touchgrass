@@ -12,9 +12,8 @@ import {
 import { LABELS } from "../../contracts/labels";
 import { Button, Dialog, Field, Textarea } from "../../design-system/ui";
 import { useAuth } from "../../hooks/useAuth";
-import { useLogHangout } from "../../hooks/useLogHangout";
+import { useLogHangout, type LoggedResult } from "../../hooks/useLogHangout";
 import type { Profile } from "../../data/types";
-import type { CreateHangoutResult } from "../../data/createHangout";
 import { useRepositories } from "../../hooks/RepositoriesContext";
 
 export function LogDialog({
@@ -24,7 +23,7 @@ export function LogDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onLogged: (result: CreateHangoutResult) => void;
+  onLogged: (result: LoggedResult) => void;
 }) {
   const { session } = useAuth();
   const repos = useRepositories();

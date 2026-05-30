@@ -1,0 +1,15 @@
+{
+  "name": "Replay Cache Commit Reminder",
+  "version": "1.0.0",
+  "description": "When Kane writes a new output/replay folder, reminds to commit it so the run is reproducible for the demo.",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      ".testmuai/tests/output-*/**"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Kane just wrote a new output/replay folder under .testmuai/tests/. This folder holds the NDJSON and per-step screenshots that make the run reproducible and let testmd flows replay from cache.\n\n1. Confirm the new output-* folder is NOT ignored by .gitignore.\n2. Remind the user to commit the output-* folder so the verified run is reproducible for the demo.\n3. Note the path of the new folder.\n\nDo not delete or modify the cached output."
+  }
+}

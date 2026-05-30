@@ -14,18 +14,51 @@ import {
 import {
   validateLogin,
   validateSignUp,
-  type SignUpField,
-  type LoginField,
+  type SignUpError,
+  type LoginError,
 } from "../core/validation";
 import type { Profile } from "../data/types";
-import {
-  DuplicateEmailError,
-  InvalidCredentialsError,
-  type AuthSession,
-} from "../data/repos";
+import type { AuthSession } from "../data/repositories";
 import { useRepositories } from "./RepositoriesContext";
 
 export type AuthStatus = "loading" | "authed" | "anon";
+
+// Map Track A's structured validation errors to user-facing copy.
+function signUpMessage(error: SignUpError): string {
+  switch (error.field) {
+    case "email":
+      return error.reason === "missing"
+        ? "Email is required"
+        : "Enter a valid email address";
+    case "password":
+      return error.reason === "missing"
+        ? "Password is required"
+        : "Password must be at least 8 characters";
+    case "displayName":
+    default:
+      return error.reason === "missing"
+        ? "Display name is required"
+        : "Display name must be 1–50 characters";
+  }
+}
+
+function loginMessage(error: LoginError): string {
+  return error.field === "email" ? "Email is required" : "Password is required";
+}
+
+// Map a Supabase auth error message to friendly copy (Track A throws raw errors).
+function authErrorMessage(err: unknown, context: "signup" | "login"): string {
+  const message = err instanceof Error ? err.message : "";
+  if (/already registered|already exists|User already/i.test(message)) {
+    return "That email is already registered";
+  }
+  if (/invalid login credentials/i.test(message)) {
+    return "Email or password is incorrect";
+  }
+  return context === "signup"
+    ? "Sign up could not be completed"
+    : "Log in could not be completed";
+}
 
 export interface FieldError<F extends string> {
   field: F;
@@ -40,11 +73,11 @@ interface AuthContextValue {
     email: string,
     password: string,
     displayName: string,
-  ) => Promise<{ ok: true } | { ok: false; error: FieldError<SignUpField | "form"> }>;
+  ) => Promise<{ ok: true } | { ok: false; error: FieldError<SignUpError["field"] | "form"> }>;
   logIn: (
     email: string,
     password: string,
-  ) => Promise<{ ok: true } | { ok: false; error: FieldError<LoginField | "form"> }>;
+  ) => Promise<{ ok: true } | { ok: false; error: FieldError<LoginError["field"] | "form"> }>;
   logOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -96,7 +129,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback<AuthContextValue["signUp"]>(
     async (email, password, displayName) => {
       const check = validateSignUp({ email, password, displayName });
-      if (!check.ok) return { ok: false, error: check.error };
+      if (!check.ok) {
+        return {
+          ok: false,
+          error: { field: check.error.field, message: signUpMessage(check.error) },
+        };
+      }
 
       try {
         const user = await repos.auth.signUp(email.trim(), password);
@@ -110,16 +148,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return { ok: true };
       } catch (err) {
-        if (err instanceof DuplicateEmailError) {
-          return {
-            ok: false,
-            error: { field: "email", message: err.message },
-          };
+        const message = authErrorMessage(err, "signup");
+        if (message === "That email is already registered") {
+          return { ok: false, error: { field: "email", message } };
         }
-        return {
-          ok: false,
-          error: { field: "form", message: "Sign up could not be completed" },
-        };
+        return { ok: false, error: { field: "form", message } };
       }
     },
     [repos],
@@ -128,19 +161,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logIn = useCallback<AuthContextValue["logIn"]>(
     async (email, password) => {
       const check = validateLogin({ email, password });
-      if (!check.ok) return { ok: false, error: check.error };
+      if (!check.ok) {
+        return {
+          ok: false,
+          error: { field: check.error.field, message: loginMessage(check.error) },
+        };
+      }
 
       try {
         const user = await repos.auth.signIn(email.trim(), password);
         await loadProfile(user.id);
         return { ok: true };
       } catch (err) {
-        if (err instanceof InvalidCredentialsError) {
-          return { ok: false, error: { field: "form", message: err.message } };
-        }
         return {
           ok: false,
-          error: { field: "form", message: "Log in could not be completed" },
+          error: { field: "form", message: authErrorMessage(err, "login") },
         };
       }
     },

@@ -1,99 +1,79 @@
-// validation.ts — pure sign-up / login validation (Requirements 1.2, 1.5, 1.7, 1.8, 2.4).
-// Returns the specific offending field so the UI can show a precise message.
+// validation.ts — pure sign-up and login validation
+// (Requirements 1.2, 1.5, 1.7, 1.8, 2.4). No I/O.
 
 export type SignUpField = "email" | "password" | "displayName";
 export type LoginField = "email" | "password";
 
-export interface ValidationError<F extends string> {
-  field: F;
-  message: string;
-}
+export type SignUpError =
+  | { field: "email"; reason: "missing" | "invalidFormat" }
+  | { field: "password"; reason: "missing" | "tooShort" }
+  | { field: "displayName"; reason: "missing" | "tooLong" };
 
-export type ValidationResult<F extends string> =
+export type LoginError = { field: LoginField; reason: "missing" };
+
+export type ValidationResult<E> =
   | { ok: true }
-  | { ok: false; error: ValidationError<F> };
+  | { ok: false; error: E };
 
-export interface SignUpInput {
-  email: string;
-  password: string;
-  displayName: string;
-}
+export const PASSWORD_MIN_LENGTH = 8;
+export const DISPLAY_NAME_MAX_LENGTH = 50;
 
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-const PASSWORD_MIN = 8;
-const DISPLAY_NAME_MIN = 1;
-const DISPLAY_NAME_MAX = 50;
-
-// Pragmatic email-format check: non-empty local part, single @, dotted domain.
+// Pragmatic email-format check: non-empty local part, "@", domain with a dot,
+// and no whitespace. Deliberately conservative — the server is the source of truth.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function isValidEmail(email: REDACTED boolean {
+export function isValidEmailFormat(email: REDACTED boolean {
   return EMAIL_RE.test(email);
 }
 
-export function validateSignUp(input: SignUpInput): ValidationResult<SignUpField> {
+// Requirements 1.2, 1.5, 1.7, 1.8. Checks fields in a fixed order so the reported
+// offending field is deterministic.
+export function validateSignUp(input: {
+  email: string;
+  password: string;
+  displayName: string;
+}): ValidationResult<SignUpError> {
   const email = input.email.trim();
   const displayName = input.displayName.trim();
+  const { password } = input;
 
-  // Empty checks first (Requirement 1.5).
+  // Email (1.5 missing, 1.7 invalid format)
   if (email.length === 0) {
-    return { ok: false, error: { field: "email", message: "Email is required" } };
+    return { ok: false, error: { field: "email", reason: "missing" } };
   }
-  if (input.password.length === 0) {
-    return {
-      ok: false,
-      error: { field: "password", message: "Password is required" },
-    };
-  }
-  if (displayName.length === 0) {
-    return {
-      ok: false,
-      error: { field: "displayName", message: "Display name is required" },
-    };
+  if (!isValidEmailFormat(email)) {
+    return { ok: false, error: { field: "email", reason: "invalidFormat" } };
   }
 
-  // Format / length checks (Requirements 1.7, 1.8).
-  if (!isValidEmail(email)) {
-    return {
-      ok: false,
-      error: { field: "email", message: "Enter a valid email address" },
-    };
+  // Password (1.5 missing, 1.8 too short)
+  if (password.length === 0) {
+    return { ok: false, error: { field: "password", reason: "missing" } };
   }
-  if (input.password.length < PASSWORD_MIN) {
-    return {
-      ok: false,
-      error: {
-        field: "password",
-        message: `Password must be at least ${PASSWORD_MIN} characters`,
-      },
-    };
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return { ok: false, error: { field: "password", reason: "tooShort" } };
   }
-  if (displayName.length > DISPLAY_NAME_MAX) {
-    return {
-      ok: false,
-      error: {
-        field: "displayName",
-        message: `Display name must be ${DISPLAY_NAME_MIN}–${DISPLAY_NAME_MAX} characters`,
-      },
-    };
+
+  // Display name (1.5 missing, 1.8 too long)
+  if (displayName.length === 0) {
+    return { ok: false, error: { field: "displayName", reason: "missing" } };
+  }
+  if (displayName.length > DISPLAY_NAME_MAX_LENGTH) {
+    return { ok: false, error: { field: "displayName", reason: "tooLong" } };
   }
 
   return { ok: true };
 }
 
-export function validateLogin(input: LoginInput): ValidationResult<LoginField> {
+// Requirement 2.4. Empty email or password fails and identifies the empty field.
+export function validateLogin(input: {
+  email: string;
+  password: string;
+}): ValidationResult<LoginError> {
   if (input.email.trim().length === 0) {
-    return { ok: false, error: { field: "email", message: "Email is required" } };
+    return { ok: false, error: { field: "email", reason: "missing" } };
   }
   if (input.password.length === 0) {
-    return {
-      ok: false,
-      error: { field: "password", message: "Password is required" },
-    };
+    return { ok: false, error: { field: "password", reason: "missing" } };
   }
   return { ok: true };
 }

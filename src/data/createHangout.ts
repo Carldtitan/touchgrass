@@ -1,125 +1,163 @@
-// createHangout.ts — the logging use-case (Requirement 3.6–3.11, 10.5).
-// Composes upload -> compute (pure core) -> verify image -> persist -> rollback.
-// Pure orchestration with no React, so it is testable against the in-memory fakes.
-import { pointsFor, type ActivityType } from "../core/activities";
-import { newlyUnlocked, type BadgeName } from "../core/badges";
+// createHangout.ts — the hangout logging use-case (Requirements 3.6–3.11, 10.5).
+//
+// Composes: upload photo -> compute (score + streak + badges via the pure core)
+// -> persist (hangout, profile, badges) -> optional rollback. Repo-agnostic, so it
+// runs against either the in-memory fakes or the Supabase-backed repositories.
+import { newlyUnlocked, unlockedBadges, type BadgeName } from "../core/badges";
+import { pointsFor } from "../core/activities";
 import { applyPoints } from "../core/score";
 import { applyLog, type StreakState } from "../core/streak";
-import type { Hangout, Profile } from "./types";
-import { UploadFailedError, type Repositories } from "./repos";
+import type { ActivityType, Hangout, HangoutWithPoster, Profile } from "./types";
+import type { Repositories } from "./repositories";
 
-export interface CreateHangoutInput {
-  userId: string;
+export interface LogHangoutInput {
+  posterId: string;
   activity: ActivityType;
   photoFile: File;
   taggedUserIds: string[];
-  evalDate: string; // ISO "YYYY-MM-DD" from the evaluation clock
+  // The streak-evaluation date "YYYY-MM-DD" from the caller's clock (Requirement 8).
+  // Defaults to real "today" (UTC) when omitted so production callers stay simple.
+  evalDate?: string;
 }
 
-export interface CreateHangoutResult {
-  hangout: Hangout;
-  profile: Profile;
-  newBadges: BadgeName[];
-}
+export type LogHangoutResult =
+  | {
+      ok: true;
+      hangout: Hangout;
+      profile: Profile;
+      newBadges: BadgeName[];
+    }
+  | {
+      ok: false;
+      reason: "upload-failed" | "persist-failed";
+      message: string;
+    };
 
-// Verifies the uploaded image actually loads (Requirement 10.5). Injected so it
-// can be stubbed in tests / non-browser environments.
-export type ImageVerifier = (url: string) => Promise<boolean>;
-
+// Reason 3.11/10.5: a failure after writes must leave no partial state behind.
 export async function createHangoutWithSideEffects(
   repos: Repositories,
-  input: CreateHangoutInput,
-  verifyImage?: ImageVerifier,
-): Promise<CreateHangoutResult> {
-  const { userId, activity, photoFile, taggedUserIds, evalDate } = input;
+  input: LogHangoutInput,
+): Promise<LogHangoutResult> {
+  const { posterId, activity, photoFile, taggedUserIds } = input;
 
-  const before = await repos.profiles.getById(userId);
-  if (!before) throw new Error("No profile for current user");
-  const prevBadges = new Set<BadgeName>(await repos.badges.listByUser(userId));
-  const prevStreak: StreakState = {
+  const before = await repos.profiles.getById(posterId);
+  if (!before) {
+    return { ok: false, reason: "persist-failed", message: "Profile not found" };
+  }
+
+  // 1) Upload the photo. On failure: no DB writes, dialog stays open (3.11).
+  let photoUrl: string;
+  try {
+    photoUrl = await repos.photos.upload(photoFile, posterId);
+    if (!photoUrl) throw new Error("Storage returned an empty URL");
+  } catch (err) {
+    return {
+      ok: false,
+      reason: "upload-failed",
+      message: err instanceof Error ? err.message : "Upload failed",
+    };
+  }
+
+  // 2) Compute the next state with the pure core (deterministic).
+  const evalDate = input.evalDate ?? new Date().toISOString().slice(0, 10);
+  const points = pointsFor(activity);
+  const nextScore = applyPoints(before.score, activity);
+
+  const streakBefore: StreakState = {
+    streak: before.streak,
+    lastLogDate: before.lastLogDate,
+  };
+  const streakAfter = applyLog(streakBefore, evalDate);
+
+  const priorBadges = new Set<BadgeName>(await repos.badges.listByUser(posterId));
+
+  // Snapshot for rollback (10.5).
+  const snapshot = {
+    score: before.score,
     streak: before.streak,
     lastLogDate: before.lastLogDate,
   };
 
-  // 1. Upload first — no DB state yet, so a failure leaves nothing to undo (3.11).
-  let photoUrl: string;
-  try {
-    photoUrl = await repos.photos.upload(photoFile, userId);
-  } catch {
-    throw new UploadFailedError();
-  }
-  if (!photoUrl) throw new UploadFailedError();
-
-  // 2. Create the hangout row.
-  const points = pointsFor(activity);
-  const hangout = await repos.hangouts.create({
-    posterId: userId,
-    activityType: activity,
-    photoUrl,
-    points,
-    taggedUserIds,
-  });
-
-  // 3. Verify the rendered image source loads BEFORE touching score/streak/badges.
-  //    If it fails, the only state to undo is the hangout row itself (10.5).
-  if (verifyImage) {
-    let ok = false;
-    try {
-      ok = await verifyImage(photoUrl);
-    } catch {
-      ok = false;
-    }
-    if (!ok) {
-      await safeDeleteHangout(repos, hangout.id);
-      throw new Error("Image failed to load");
-    }
-  }
+  let createdHangout: Hangout | null = null;
+  const unlockedThisLog: BadgeName[] = [];
 
   try {
-    // 4. Compute derived results with the pure core.
-    const nextScore = applyPoints(before.score, activity);
-    const nextStreak = applyLog(prevStreak, evalDate);
-    const hangoutCount = await repos.hangouts.countByUser(userId);
-    const earned = newlyUnlocked(prevBadges, {
-      hangoutCount,
-      streak: nextStreak.streak,
+    // 3) Persist the hangout (3.7).
+    createdHangout = await repos.hangouts.create({
+      posterId,
+      activityType: activity,
+      photoUrl,
+      points,
+      taggedUserIds,
     });
-
-    // 5. Persist profile + badges.
-    const profile = await repos.profiles.update(userId, {
+    // 4) Persist the updated score + streak (3.8, 3.9).
+    const persistedProfile = await repos.profiles.update(posterId, {
       score: nextScore,
-      streak: nextStreak.streak,
-      lastLogDate: nextStreak.lastLogDate,
+      streak: streakAfter.streak,
+      lastLogDate: streakAfter.lastLogDate,
     });
-    for (const badge of earned) {
-      await repos.badges.unlock(userId, badge);
+
+    // 5) Persist any newly-unlocked badges (6.4–6.7).
+    const hangoutCount = await repos.hangouts.countByUser(posterId);
+    const fresh = newlyUnlocked(priorBadges, {
+      hangoutCount,
+      streak: streakAfter.streak,
+    });
+    for (const badge of fresh) {
+      await repos.badges.unlock(posterId, badge);
+      unlockedThisLog.push(badge);
     }
 
-    return { hangout, profile, newBadges: [...earned] };
+    return {
+      ok: true,
+      hangout: createdHangout,
+      profile: persistedProfile,
+      newBadges: unlockedThisLog,
+    };
   } catch (err) {
-    // A persistence failure after the row exists: undo the hangout and restore
-    // the pre-write score/streak so totals match the starting state (10.5).
-    await safeDeleteHangout(repos, hangout.id);
-    try {
-      await repos.profiles.update(userId, {
-        score: before.score,
-        streak: prevStreak.streak,
-        lastLogDate: prevStreak.lastLogDate,
-      });
-    } catch {
-      // Best-effort; the original error is more informative.
-    }
-    throw err;
+    // Rollback (10.5): delete the hangout and restore pre-state score/streak.
+    await rollback(repos, posterId, createdHangout, snapshot);
+    return {
+      ok: false,
+      reason: "persist-failed",
+      message: err instanceof Error ? err.message : "Persist failed",
+    };
   }
 }
 
-async function safeDeleteHangout(
+async function rollback(
   repos: Repositories,
-  hangoutId: string,
+  posterId: string,
+  createdHangout: Hangout | null,
+  snapshot: { score: number; streak: number; lastLogDate: string | null },
 ): Promise<void> {
-  try {
-    await repos.hangouts.delete(hangoutId);
-  } catch {
-    // Best-effort rollback.
+  if (createdHangout) {
+    try {
+      await repos.hangouts.delete(createdHangout.id);
+    } catch {
+      // best-effort; swallow so the original error surfaces
+    }
   }
+  try {
+    await repos.profiles.update(posterId, {
+      score: snapshot.score,
+      streak: snapshot.streak,
+      lastLogDate: snapshot.lastLogDate,
+    });
+  } catch {
+    // best-effort
+  }
+  // Note: badge unlocks are monotonic and idempotent; we recompute on next read,
+  // so we deliberately do not "re-lock" badges here.
 }
+
+// The evaluation date is supplied by the caller's clock (Requirement 8) via
+// LogHangoutInput.evalDate; see the input type above.
+
+// Helper to expose the badge computation for callers that want it without a write.
+export function badgesForStats(hangoutCount: number, streak: number): Set<BadgeName> {
+  return unlockedBadges({ hangoutCount, streak });
+}
+
+// Re-export the composed feed type for convenience.
+export type { HangoutWithPoster };

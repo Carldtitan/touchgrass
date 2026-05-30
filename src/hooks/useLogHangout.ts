@@ -1,13 +1,12 @@
 // useLogHangout — drives the logging flow (Requirement 3, 10.5).
 // Validation (photo + activity present), upload-in-progress state, and the
-// create-with-rollback use-case. Computation lives in the pure core.
+// create-with-rollback use-case from Track A. Computation lives in the pure core.
 import { useCallback, useState } from "react";
 import type { ActivityType } from "../core/activities";
 import {
   createHangoutWithSideEffects,
-  type CreateHangoutResult,
+  type LogHangoutResult,
 } from "../data/createHangout";
-import { UploadFailedError } from "../data/repos";
 import { useAuth } from "./useAuth";
 import { useEvaluationClock } from "./useEvaluationClock";
 import { useRepositories } from "./RepositoriesContext";
@@ -20,24 +19,16 @@ export interface LogHangoutErrors {
   form?: string;
 }
 
-// Verify the uploaded image actually loads in the browser (Requirement 10.5).
-function verifyImageLoads(url: REDACTED Promise<boolean> {
-  if (typeof Image === "undefined") return Promise.resolve(true);
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve(img.naturalWidth > 0);
-    img.onerror = () => resolve(false);
-    img.src = url;
-  });
-}
+// A successful create result (the ok branch of Track A's union).
+export type LoggedResult = Extract<LogHangoutResult, { ok: true }>;
 
-export function useLogHangout(onLogged?: (result: CreateHangoutResult) => void) {
+export function useLogHangout(onLogged?: (result: LoggedResult) => void) {
   const repos = useRepositories();
   const { session, refreshProfile } = useAuth();
   const { evaluationDate } = useEvaluationClock();
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errors, setErrors] = useState<LogHangoutErrors>({});
-  const [result, setResult] = useState<CreateHangoutResult | null>(null);
+  const [result, setResult] = useState<LoggedResult | null>(null);
 
   const reset = useCallback(() => {
     setStatus("idle");
@@ -65,32 +56,31 @@ export function useLogHangout(onLogged?: (result: CreateHangoutResult) => void) 
 
       setErrors({});
       setStatus("uploading"); // disables "Log it" + shows progress (3.5)
-      try {
-        const created = await createHangoutWithSideEffects(
-          repos,
-          {
-            userId: session.user.id,
-            activity: params.activity!,
-            photoFile: params.photoFile!,
-            taggedUserIds: params.taggedUserIds ?? [],
-            evalDate: evaluationDate,
-          },
-          verifyImageLoads,
-        );
-        setResult(created);
+
+      const res = await createHangoutWithSideEffects(repos, {
+        posterId: session.user.id,
+        activity: params.activity!,
+        photoFile: params.photoFile!,
+        taggedUserIds: params.taggedUserIds ?? [],
+        evalDate: evaluationDate,
+      });
+
+      if (res.ok) {
+        setResult(res);
         setStatus("success");
         await refreshProfile();
-        onLogged?.(created);
-        return { ok: true as const, result: created };
-      } catch (err) {
-        setStatus("error");
-        const message =
-          err instanceof UploadFailedError
-            ? "Photo upload failed. Please try again."
-            : "Could not log your hangout. Please try again.";
-        setErrors({ form: message });
-        return { ok: false as const };
+        onLogged?.(res);
+        return { ok: true as const, result: res };
       }
+
+      setStatus("error");
+      setErrors({
+        form:
+          res.reason === "upload-failed"
+            ? "Photo upload failed. Please try again."
+            : "Could not log your hangout. Please try again.",
+      });
+      return { ok: false as const };
     },
     [repos, session, evaluationDate, refreshProfile, onLogged],
   );

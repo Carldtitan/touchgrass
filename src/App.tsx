@@ -3,11 +3,13 @@
 // providers and routes by session status (Track B).
 import { useMemo } from "react";
 import { checkConfig } from "./data/config";
-import { createSupabaseRepositories } from "./data/supabaseRepos";
-import type { Repositories } from "./data/repos";
+import { createSupabaseRepositories } from "./data/supabaseRepositories";
 import { AppShell } from "./design-system/AppShell";
 import { ConfigError } from "./design-system/ConfigError";
-import { RepositoriesProvider } from "./hooks/RepositoriesContext";
+import {
+  RepositoriesProvider,
+  type AppRepositories,
+} from "./hooks/RepositoriesContext";
 import { AuthProvider } from "./hooks/useAuth";
 import { EvaluationClockProvider } from "./hooks/useEvaluationClock";
 import { AppRoutes } from "./features/AppRoutes";
@@ -28,7 +30,10 @@ export function App() {
 
 // Separated so the Supabase client is only constructed once config is valid.
 function ConfiguredApp() {
-  const repositories = useMemo<Repositories>(() => createSupabaseRepositories(), []);
+  const repositories = useMemo<AppRepositories>(
+    () => createSupabaseRepositories(),
+    [],
+  );
   return (
     <RepositoriesProvider repositories={repositories}>
       <AuthProvider>
