@@ -34,6 +34,7 @@ export function LogDialog({
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewIsVideo, setPreviewIsVideo] = useState(false);
   const [activity, setActivity] = useState<ActivityType | null>(null);
   const [taggable, setTaggable] = useState<Profile[]>([]);
   const [taggedIds, setTaggedIds] = useState<string[]>([]);
@@ -64,6 +65,7 @@ export function LogDialog({
       setActivity(null);
       setTaggedIds([]);
       setNote("");
+      setPreviewIsVideo(false);
       setPreviewUrl((url) => {
         if (url) URL.revokeObjectURL(url);
         return null;
@@ -75,6 +77,7 @@ export function LogDialog({
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setPhotoFile(file);
+    setPreviewIsVideo(file?.type.startsWith("video/") ?? false);
     setPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return file ? URL.createObjectURL(file) : null;
@@ -96,13 +99,13 @@ export function LogDialog({
     <Dialog open={open} onClose={uploading ? () => undefined : onClose} title="Log a hangout">
       <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "var(--space-4)" }}>
         {/* Photo input (Req 3.2, 10.2) */}
-        <Field label="Photo" htmlFor="hangout-photo" error={errors.photo}>
+        <Field label="Photo or video" htmlFor="hangout-photo" error={errors.photo}>
           <input
             ref={fileInputRef}
             id="hangout-photo"
             name="photo"
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             onChange={handleFile}
             style={{ display: "none" }}
           />
@@ -126,15 +129,24 @@ export function LogDialog({
             }}
           >
             {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Selected hangout preview"
-                style={{ width: "100%", maxHeight: 240, objectFit: "cover" }}
-              />
+              previewIsVideo ? (
+                <video
+                  src={previewUrl}
+                  controls
+                  playsInline
+                  style={{ width: "100%", maxHeight: 240, objectFit: "cover" }}
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt="Selected hangout preview"
+                  style={{ width: "100%", maxHeight: 240, objectFit: "cover" }}
+                />
+              )
             ) : (
               <>
                 <ImagePlus size={28} />
-                <span style={{ fontWeight: 600 }}>Add a photo from your hangout</span>
+                <span style={{ fontWeight: 600 }}>Add a photo or video from your hangout</span>
               </>
             )}
           </button>

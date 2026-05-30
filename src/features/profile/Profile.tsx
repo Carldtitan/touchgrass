@@ -6,6 +6,7 @@ import { LABELS } from "../../contracts/labels";
 import { TESTIDS } from "../../contracts/testids";
 import { Button, Card } from "../../design-system/ui";
 import { InitialsAvatar } from "../../design-system/InitialsAvatar";
+import { HangoutMedia } from "../feed/HangoutMedia";
 import { useProfile } from "../../hooks/useProfile";
 import { BadgeItem } from "./BadgeItem";
 
@@ -145,10 +146,11 @@ export function Profile({
                   background: "var(--color-surface)",
                 }}
               >
-                <img
-                  src={h.photoUrl}
-                  alt={`${h.activityType} hangout`}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                <HangoutMedia
+                  url={h.photoUrl}
+                  label={`${h.activityType} hangout`}
+                  controls={false}
+                  style={{ height: "100%" }}
                 />
                 <span
                   aria-hidden
