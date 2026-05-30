@@ -15,6 +15,9 @@ export interface LogHangoutInput {
   activity: ActivityType;
   photoFile: File;
   taggedUserIds: string[];
+  // Optional caption. When non-empty, it is persisted as the poster's first
+  // comment on the new hangout so it renders as the post caption (Req 4.4).
+  note?: string;
   // The streak-evaluation date "YYYY-MM-DD" from the caller's clock (Requirement 8).
   // Defaults to real "today" (UTC) when omitted so production callers stay simple.
   evalDate?: string;
@@ -90,6 +93,18 @@ export async function createHangoutWithSideEffects(
       points,
       taggedUserIds,
     });
+
+    // 3b) Persist the optional note as the poster's first comment (caption, 4.4).
+    // Best-effort: a caption failure must not roll back a logged hangout.
+    const note = input.note?.trim();
+    if (note) {
+      try {
+        await repos.comments.add(createdHangout.id, posterId, note);
+      } catch {
+        // swallow — the hangout itself succeeded; caption is non-critical
+      }
+    }
+
     // 4) Persist the updated score + streak (3.8, 3.9).
     const persistedProfile = await repos.profiles.update(posterId, {
       score: nextScore,

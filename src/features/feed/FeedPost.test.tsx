@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { FeedPost } from "./FeedPost";
 import { TESTIDS } from "../../contracts/testids";
 import { LABELS } from "../../contracts/labels";
-import type { HangoutWithPoster } from "../../data/types";
+import type { CommentWithAuthor, HangoutWithPoster } from "../../data/types";
 
 const post: HangoutWithPoster = {
   id: "h1",
@@ -19,9 +19,31 @@ const post: HangoutWithPoster = {
   commentCount: 1,
 };
 
+const comments: CommentWithAuthor[] = [
+  {
+    id: "c1",
+    hangoutId: "h1",
+    authorId: "u2",
+    authorDisplayName: "Grace Hopper",
+    body: "Leg day done",
+    createdAt: new Date().toISOString(),
+  },
+];
+
+const noop = async () => true;
+
 describe("FeedPost", () => {
   it("renders poster, points, cheer label/count and the image source (10.4)", () => {
-    render(<FeedPost post={post} hasCheered={false} onCheer={() => undefined} />);
+    render(
+      <FeedPost
+        post={post}
+        hasCheered={false}
+        onCheer={() => undefined}
+        comments={comments}
+        canComment={false}
+        onAddComment={noop}
+      />,
+    );
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     expect(screen.getByText(/\+20 points/)).toBeInTheDocument();
     expect(screen.getByText(new RegExp(`${LABELS.cheer} 3`))).toBeInTheDocument();
@@ -31,9 +53,32 @@ describe("FeedPost", () => {
     expect(img.getAttribute("src")).not.toBe("");
   });
 
+  it("renders the post's note/caption as the first comment (4.4)", () => {
+    render(
+      <FeedPost
+        post={post}
+        hasCheered={false}
+        onCheer={() => undefined}
+        comments={comments}
+        canComment={false}
+        onAddComment={noop}
+      />,
+    );
+    expect(screen.getByText("Leg day done")).toBeInTheDocument();
+  });
+
   it("fires onCheer when the cheer control is clicked (4.5)", () => {
     const onCheer = vi.fn();
-    render(<FeedPost post={post} hasCheered={false} onCheer={onCheer} />);
+    render(
+      <FeedPost
+        post={post}
+        hasCheered={false}
+        onCheer={onCheer}
+        comments={comments}
+        canComment={false}
+        onAddComment={noop}
+      />,
+    );
     screen.getByText(new RegExp(`${LABELS.cheer} 3`)).click();
     expect(onCheer).toHaveBeenCalledWith("h1");
   });

@@ -41,6 +41,7 @@ export function useLogHangout(onLogged?: (result: LoggedResult) => void) {
       photoFile: File | null;
       activity: ActivityType | null;
       taggedUserIds?: string[];
+      note?: string;
     }) => {
       const nextErrors: LogHangoutErrors = {};
       if (!params.photoFile) nextErrors.photo = "A photo is required"; // 3.3
@@ -62,6 +63,7 @@ export function useLogHangout(onLogged?: (result: LoggedResult) => void) {
         activity: params.activity!,
         photoFile: params.photoFile!,
         taggedUserIds: params.taggedUserIds ?? [],
+        note: params.note,
         evalDate: evaluationDate,
       });
 
