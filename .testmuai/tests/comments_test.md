@@ -16,7 +16,7 @@ content (Req 10.4).
 Go to http://localhost:3000
 
 ## Step 2
-Sign up a fresh user: click "Sign up", enter a unique email like kane-comment-20260530@example.com, password grass1234, and display name Kane Commenter, then submit.
+Sign up a fresh user: click "Sign up", enter the email {{email}}, password grass1234, and display name {{displayName}}, then submit.
 
 ## Step 3
 Open the log dialog by clicking the center Log control in the bottom navigation bar.

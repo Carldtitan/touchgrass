@@ -59,6 +59,19 @@ function authErrorMessage(err: unknown, context: "signup" | "login"): string {
     : "Log in could not be completed";
 }
 
+// A duplicate display name surfaces as our in-memory message or a Postgres unique
+// violation (code 23505 / "duplicate key" / the unique index name).
+function isDisplayNameTaken(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : "";
+  const code = (err as { code?: string } | null)?.code ?? "";
+  return (
+    code === "23505" ||
+    /display name already taken/i.test(message) ||
+    /profiles_display_name_unique_idx/i.test(message) ||
+    (/duplicate key/i.test(message) && /display_name/i.test(message))
+  );
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const repos = useRepositories();
   const [status, setStatus] = useState<AuthStatus>("loading");
@@ -123,6 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return { ok: true };
       } catch (err) {
+        if (isDisplayNameTaken(err)) {
+          return {
+            ok: false,
+            error: { field: "displayName", message: "That display name is taken" },
+          };
+        }
         const message = authErrorMessage(err, "signup");
         if (message === "That email is already registered") {
           return { ok: false, error: { field: "email", message } };
