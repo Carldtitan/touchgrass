@@ -1,12 +1,13 @@
 {
+  "enabled": true,
   "name": "Full Kane Suite (Manual)",
-  "version": "1.0.0",
-  "description": "Manually triggered full Kane verification of all Track B/C flows. Use before demo or after merging to confirm everything is green. Requires the dev server running on http://localhost:3000.",
+  "description": "Manually triggered full Kane verification of all flows. Use before demo or after merging to confirm everything is green. Requires the dev server running on localhost:3000.",
+  "version": "1",
   "when": {
     "type": "userTriggered"
   },
   "then": {
     "type": "runCommand",
-    "command": "npm run typecheck && npm run test -- --run && kane-cli testmd run .testmuai/tests/config_error_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/auth_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/log_hangout_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/leaderboard_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/profile_badges_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/streak_test.md --agent --headless --timeout 180"
+    "command": "npm run typecheck && npm run lint && npm run test -- --run && kane-cli testmd run .testmuai/tests/config_error_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/signup_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/login_logout_test.md --agent --headless --timeout 150 && kane-cli testmd run .testmuai/tests/empty_state_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/log_hangout_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/leaderboard_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/profile_badges_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/streak_test.md --agent --headless --timeout 180"
   }
 }
