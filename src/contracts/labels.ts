@@ -5,6 +5,8 @@ export const LABELS = {
   logIn: "Log in",
   logIt: "Log it",
   cheer: "Cheer",
+  comment: "Comment",
+  postComment: "Post",
   skipADay: "Skip a day",
   logOut: "Log out",
 } as const;

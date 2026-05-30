@@ -10,6 +10,7 @@ import {
   type ActivityType,
 } from "../../core/activities";
 import { LABELS } from "../../contracts/labels";
+import { COPY } from "../../contracts/copy";
 import { Button, Dialog, Field, Textarea } from "../../design-system/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useLogHangout, type LoggedResult } from "../../hooks/useLogHangout";
@@ -36,6 +37,7 @@ export function LogDialog({
   const [activity, setActivity] = useState<ActivityType | null>(null);
   const [taggable, setTaggable] = useState<Profile[]>([]);
   const [taggedIds, setTaggedIds] = useState<string[]>([]);
+  const [note, setNote] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load other users to tag (optional control, Req 3.2). Real data only.
@@ -61,6 +63,7 @@ export function LogDialog({
       setPhotoFile(null);
       setActivity(null);
       setTaggedIds([]);
+      setNote("");
       setPreviewUrl((url) => {
         if (url) URL.revokeObjectURL(url);
         return null;
@@ -80,7 +83,7 @@ export function LogDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const res = await submit({ photoFile, activity, taggedUserIds: taggedIds });
+    const res = await submit({ photoFile, activity, taggedUserIds: taggedIds, note });
     if (res.ok) {
       onClose(); // celebration is shown by the parent (Req 3.10)
     }
@@ -232,7 +235,9 @@ export function LogDialog({
             id="hangout-note"
             name="note"
             rows={2}
-            placeholder="What did you get up to?"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={COPY.notePlaceholder}
           />
         </Field>
 

@@ -4,4 +4,7 @@ export const COPY = {
   noGrassToday: "You haven't touched grass today.",
   emptyFeed: "No grass touched yet — be the first",
   configErrorTitle: "Configuration error",
+  noComments: "No comments yet — say something nice",
+  commentPlaceholder: "Add a comment…",
+  notePlaceholder: "What did you get up to?",
 } as const;

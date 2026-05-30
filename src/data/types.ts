@@ -28,6 +28,16 @@ export interface HangoutWithPoster extends Hangout {
   commentCount: number;
 }
 
+// A comment on a hangout, with its author's display name for rendering (Req 4.4).
+export interface CommentWithAuthor {
+  id: string;
+  hangoutId: string;
+  authorId: string;
+  authorDisplayName: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface NewHangout {
   posterId: string;
   activityType: ActivityType;

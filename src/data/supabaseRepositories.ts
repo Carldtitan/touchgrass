@@ -24,6 +24,7 @@ import type {
   NewHangout,
   Profile,
 } from "./types";
+import type { CommentWithAuthor } from "./types";
 
 // ---- row shapes (as stored) ----
 interface ProfileRow {
@@ -241,11 +242,18 @@ export class SupabaseCheerRepo implements CheerRepo {
 export class SupabaseCommentRepo implements CommentRepo {
   constructor(private readonly db: SupabaseClient) {}
 
-  async add(hangoutId: string, userId: string, body: REDACTED Promise<void> {
-    const { error } = await this.db
+  async add(
+    hangoutId: string,
+    userId: string,
+    body: string,
+  ): Promise<CommentWithAuthor> {
+    const { data, error } = await this.db
       .from("comments")
-      .insert({ hangout_id: hangoutId, user_id: userId, body });
+      .insert({ hangout_id: hangoutId, user_id: userId, body })
+      .select("id, hangout_id, user_id, body, created_at, profiles(display_name)")
+      .single();
     if (error) throw error;
+    return toComment(data as unknown as CommentRow);
   }
 
   async countFor(hangoutId: REDACTED Promise<number> {
@@ -256,6 +264,36 @@ export class SupabaseCommentRepo implements CommentRepo {
     if (error) throw error;
     return count ?? 0;
   }
+
+  async listFor(hangoutId: REDACTED Promise<CommentWithAuthor[]> {
+    const { data, error } = await this.db
+      .from("comments")
+      .select("id, hangout_id, user_id, body, created_at, profiles(display_name)")
+      .eq("hangout_id", hangoutId)
+      .order("created_at", { ascending: true }); // oldest-first thread
+    if (error) throw error;
+    return (data as unknown as CommentRow[]).map(toComment);
+  }
+}
+
+interface CommentRow {
+  id: string;
+  hangout_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  profiles?: { display_name: string } | null;
+}
+
+function toComment(row: CommentRow): CommentWithAuthor {
+  return {
+    id: row.id,
+    hangoutId: row.hangout_id,
+    authorId: row.user_id,
+    authorDisplayName: row.profiles?.display_name ?? "Unknown",
+    body: row.body,
+    createdAt: row.created_at,
+  };
 }
 
 export class SupabaseBadgeRepo implements BadgeRepo {

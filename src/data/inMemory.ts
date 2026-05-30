@@ -16,6 +16,7 @@ import type {
   Unsubscribe,
 } from "./repositories";
 import type { Hangout, HangoutWithPoster, NewHangout, Profile } from "./types";
+import type { CommentWithAuthor } from "./types";
 
 // A monotonic id generator so fakes don't depend on Math.random / crypto.
 function createIdFactory(prefix: REDACTED () => string {
@@ -151,16 +152,62 @@ export class InMemoryCheerRepo implements CheerRepo {
 }
 
 export class InMemoryCommentRepo implements CommentRepo {
-  private readonly comments = new Map<string, { userId: string; body: string }[]>();
+  private readonly comments = new Map<
+    string,
+    { id: string; userId: string; body: string; createdAt: string }[]
+  >();
+  private readonly nextId = createIdFactory("comment");
+  private seq = 0;
 
-  async add(hangoutId: string, userId: string, body: REDACTED Promise<void> {
+  // Optional profiles repo so comments can carry author display names. When
+  // omitted (e.g. count-only property tests), authorDisplayName falls back to "".
+  constructor(
+    private readonly profiles?: InMemoryProfileRepo,
+    private readonly clock: () => string = () => new Date().toISOString(),
+  ) {}
+
+  async add(
+    hangoutId: string,
+    userId: string,
+    body: string,
+  ): Promise<CommentWithAuthor> {
     const list = this.comments.get(hangoutId) ?? [];
-    list.push({ userId, body });
+    const entry = {
+      id: this.nextId(),
+      userId,
+      body,
+      // stable createdAt with a monotonic suffix so equal-clock comments keep order
+      createdAt: `${this.clock()}#${this.seq++}`,
+    };
+    list.push(entry);
     this.comments.set(hangoutId, list);
+    return this.toWithAuthor(hangoutId, entry);
   }
 
   async countFor(hangoutId: REDACTED Promise<number> {
     return this.comments.get(hangoutId)?.length ?? 0;
+  }
+
+  async listFor(hangoutId: REDACTED Promise<CommentWithAuthor[]> {
+    const list = this.comments.get(hangoutId) ?? [];
+    const out: CommentWithAuthor[] = [];
+    for (const entry of list) out.push(await this.toWithAuthor(hangoutId, entry));
+    return out;
+  }
+
+  private async toWithAuthor(
+    hangoutId: string,
+    entry: { id: string; userId: string; body: string; createdAt: string },
+  ): Promise<CommentWithAuthor> {
+    const author = await this.profiles?.getById(entry.userId);
+    return {
+      id: entry.id,
+      hangoutId,
+      authorId: entry.userId,
+      authorDisplayName: author?.displayName ?? "Unknown",
+      body: entry.body,
+      createdAt: entry.createdAt,
+    };
   }
 }
 
@@ -250,7 +297,7 @@ export function createInMemoryRepositories(): Repositories & {
     profiles,
     hangouts: new InMemoryHangoutRepo(profiles),
     cheers: new InMemoryCheerRepo(),
-    comments: new InMemoryCommentRepo(),
+    comments: new InMemoryCommentRepo(profiles),
     badges: new InMemoryBadgeRepo(),
     photos: new InMemoryPhotoStorageRepo(),
     auth: new InMemoryAuthRepo(),
