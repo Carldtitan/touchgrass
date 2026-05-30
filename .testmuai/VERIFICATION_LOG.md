@@ -70,3 +70,46 @@ matching Track B components land and a live Supabase `.env` is present.
 
 First run authors the flow (slow, uses credits); later runs replay from the committed
 cache (fast, free, deterministic).
+
+---
+
+## Run 2 — Auth: Sign up → land on Home (Requirement 1, 2.2) ✅ PASSED
+
+- **Flow:** `.testmuai/tests/auth_test.md`
+- **Command:** `kane-cli testmd run .testmuai/tests/auth_test.md --agent --headless --timeout 120`
+- **Result:** `passed` — 5/5 steps.
+- **What Kane confirmed:** signed up a fresh unique user, landed on Home with the
+  bottom navigation bar visible and the streak counter (flame, 0) rendered.
+- **Evidence:** `output-auth/Result.md` + `output-auth/screenshots/*.jpg`.
+
+## Run 3 — Log a hangout with photo → post appears (Requirements 3, 4) ✅ PASSED
+
+The signature cascade, verified end to end in a real browser.
+
+- **Flow:** `.testmuai/tests/log_hangout_test.md`
+- **Command:** `kane-cli testmd run .testmuai/tests/log_hangout_test.md --agent --headless --timeout 300`
+- **Result:** `passed` — 6/6 steps (session `cb527005`).
+- **What Kane confirmed (visual + DOM analysis):**
+  - Signed up a fresh unique user and reached Home.
+  - Opened the Log dialog, set the file input to `.testmuai/tests/fixtures/hangout.jpg`,
+    selected Gym (20 points), and clicked "Log it".
+  - The dialog closed on its own after a successful submit.
+  - The new feed post by "Kane Logger" rendered with `feed-post-image` having a
+    non-empty `src`, and the "+20 points · Gym" label visible.
+- **Evidence:** `output-log_hangout/Result.md` + `output-log_hangout/screenshots/*.jpg`.
+
+### App fixes made so these flows pass (Kiro fixed the app, not the test)
+
+- **Photo input testability (Req 10.2):** the file input was `display:none`; made it
+  a real, visible `<input type=file>` so it is settable by a person and an agent.
+- **Reachable primary action:** the "Log it" button was below the dialog scroll fold
+  and unreachable; the Dialog now has a pinned sticky footer holding "Log it".
+- **Post-log feed refresh (Req 4.1):** added a feed-refresh signal so a successful log
+  forces the Home feed to refetch (with a short retry for read-after-write timing).
+
+### Flow corrections (self-contained, per the steering rules)
+
+- Each flow now signs up its own fresh unique email per run (rule #4) instead of a
+  hardcoded address.
+- `log_hangout` step boundaries clarified so the agent sets the photo, picks Gym,
+  and clicks "Log it" rather than dismissing the dialog.
