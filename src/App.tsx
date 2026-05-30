@@ -13,9 +13,9 @@ export function App() {
       {!config.valid ? (
         <ConfigError missing={config.missing} />
       ) : (
-        <div style={{ padding: "var(--space-6)" }}>
-          <h1 style={{ color: "var(--color-accent)" }}>TouchGrass</h1>
-          <p style={{ color: "var(--color-text-muted)" }}>
+        <div className="p-6">
+          <h1 className="text-accent">TouchGrass</h1>
+          <p className="text-muted">
             Configuration loaded. Auth screen and tabs land here (Track B).
           </p>
         </div>

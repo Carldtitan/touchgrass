@@ -12,14 +12,15 @@ behavior. See `.kiro/steering/kane-verification.md` for the full discipline.
 ## Run 1 — Config Error startup screen (Requirement 11.4) ✅ PASSED
 
 The first real closed-loop proof on the skeleton app, exactly the README's
-"wire the loop early, while the app is tiny" strategy.
+"wire the loop early, while the app is tiny" strategy. Re-verified after the
+design-system refactor (Tailwind tokens + shadcn primitives) — still passing.
 
 - **Flow:** `.testmuai/tests/config_error_test.md`
 - **Command:** `kane-cli testmd run .testmuai/tests/config_error_test.md --agent --headless --timeout 120`
 - **Result:** `passed` — 2/2 steps (see `.testmuai/tests/output-config_error.staging/Result.md`)
-- **Session ID:** `07861c83-add5-405c-bf92-75518cf3061e`
+- **Latest session ID:** `a0c53cb5-6450-479d-a3d5-8f246491435b`
 - **What Kane confirmed (visual analysis, from the NDJSON):**
-  - A red page heading with the exact text "Configuration error" is visible.
+  - A page heading with the exact text "Configuration error" is visible.
   - The missing value `VITE_SUPABASE_URL` is listed on screen.
   - The missing value `VITE_SUPABASE_ANON_KEY` is listed on screen.
 - **Evidence committed:**
@@ -31,6 +32,16 @@ This run proves the loop end to end: Kiro built the `ConfigError` screen (Req 11
 Kane drove a real browser to `http://localhost:3000`, and confirmed the rendered
 behavior matched the spec.
 
+### Closed-loop moment captured (the demo gold)
+
+During the re-verification, Kane **caught a real precondition mismatch**: after a live
+`.env` (with real Supabase keys) was added, the flow failed because the app correctly
+rendered "Configuration loaded" instead of the error screen. The NDJSON failure reason
+read: page header "TouchGrass" / "Configuration loaded" — heading "Configuration error"
+not present. The fix (per the steering rules) was NOT to weaken the assertion but to run
+the flow against its true precondition (no config); it then passed. This is the closed
+loop doing exactly its job — proof that the assertions are real, not vacuous.
+
 ---
 
 ## Authored, pending Track B UI (will pass once components render)
@@ -41,7 +52,9 @@ matching Track B components land and a live Supabase `.env` is present.
 
 | Flow | Verifies | Status |
 |---|---|---|
-| `auth_test.md` | Sign up → land on Home (Req 1, 2.2) | authored |
+| `signup_test.md` | Sign up → land on Home (Req 1, 2.2) | authored |
+| `login_logout_test.md` | Log in, log out, return to auth (Req 2.1, 2.5, 2.6) | authored |
+| `empty_state_test.md` | New user sees empty-feed copy, no seed data (Req 4.8, 12.3) | authored |
 | `log_hangout_test.md` | Log hangout w/ photo → post + image + points (Req 3, 4) | authored |
 | `leaderboard_test.md` | Leaderboard ranking + highlight (Req 5) | authored |
 | `profile_badges_test.md` | Profile stats + First Steps badge (Req 6) | authored |

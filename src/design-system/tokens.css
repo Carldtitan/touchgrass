@@ -1,6 +1,10 @@
 /* tokens.css — Design tokens (Requirement 9.1, 9.4).
    Colors, spacing scale (4/8/12/16/24/32), and Inter typography as CSS variables.
    Components reference these tokens, never arbitrary hex/px (Requirement 9.2). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* Color palette */
   --color-accent: #22c55e; /* grass-green (9.4) */
