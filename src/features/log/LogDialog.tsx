@@ -96,60 +96,113 @@ export function LogDialog({
   const uploading = status === "uploading";
 
   return (
-    <Dialog open={open} onClose={uploading ? () => undefined : onClose} title="Log a hangout">
-      <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "var(--space-4)" }}>
-        {/* Photo input (Req 3.2, 10.2) */}
+    <Dialog
+      open={open}
+      onClose={uploading ? () => undefined : onClose}
+      title="Log a hangout"
+      footer={
+        <div style={{ display: "grid", gap: "var(--space-3)" }}>
+          {/* Upload progress (Req 3.5) */}
+          {uploading && (
+            <div
+              role="status"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                color: "var(--color-text-muted)",
+                fontSize: 14,
+              }}
+            >
+              <Loader2 size={16} className="spin" />
+              Uploading your media…
+            </div>
+          )}
+          {errors.form && (
+            <p
+              role="alert"
+              style={{ margin: 0, color: "var(--color-danger)", fontSize: 14 }}
+            >
+              {errors.form}
+            </p>
+          )}
+          <Button type="submit" form="log-hangout-form" disabled={uploading}>
+            {uploading ? "Logging…" : LABELS.logIt}
+          </Button>
+        </div>
+      }
+    >
+      <form
+        id="log-hangout-form"
+        onSubmit={handleSubmit}
+        noValidate
+        style={{ display: "grid", gap: "var(--space-4)" }}
+      >
+        {/* Media input (Req 3.2, 10.2) — a real, visible file input so it can
+            be set both by a person and programmatically by an automated agent.
+            Accepts a photo or a short video. */}
         <Field label="Photo or video" htmlFor="hangout-photo" error={errors.photo}>
-          <input
-            ref={fileInputRef}
-            id="hangout-photo"
-            name="photo"
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleFile}
-            style={{ display: "none" }}
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              border: "1px dashed var(--color-border)",
-              borderRadius: "var(--radius)",
-              padding: previewUrl ? 0 : "var(--space-8)",
-              background: "var(--color-surface)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "var(--space-2)",
-              color: "var(--color-text-muted)",
-              overflow: "hidden",
-              minHeight: 120,
-            }}
-          >
-            {previewUrl ? (
-              previewIsVideo ? (
+          <div style={{ display: "grid", gap: "var(--space-2)" }}>
+            {previewUrl &&
+              (previewIsVideo ? (
                 <video
                   src={previewUrl}
                   controls
                   playsInline
-                  style={{ width: "100%", maxHeight: 240, objectFit: "cover" }}
+                  style={{
+                    width: "100%",
+                    maxHeight: 240,
+                    objectFit: "cover",
+                    borderRadius: "var(--radius)",
+                    border: "1px solid var(--color-border)",
+                  }}
                 />
               ) : (
                 <img
                   src={previewUrl}
                   alt="Selected hangout preview"
-                  style={{ width: "100%", maxHeight: 240, objectFit: "cover" }}
+                  style={{
+                    width: "100%",
+                    maxHeight: 240,
+                    objectFit: "cover",
+                    borderRadius: "var(--radius)",
+                    border: "1px solid var(--color-border)",
+                  }}
                 />
-              )
-            ) : (
-              <>
-                <ImagePlus size={28} />
-                <span style={{ fontWeight: 600 }}>Add a photo or video from your hangout</span>
-              </>
+              ))}
+            <input
+              ref={fileInputRef}
+              id="hangout-photo"
+              name="photo"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFile}
+              style={{
+                width: "100%",
+                padding: "var(--space-4)",
+                borderRadius: "var(--radius)",
+                border: "1px dashed var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-text)",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            />
+            {!previewUrl && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "var(--space-2)",
+                  color: "var(--color-text-muted)",
+                  fontSize: 13,
+                }}
+              >
+                <ImagePlus size={16} />
+                Add a photo or video from your hangout
+              </span>
             )}
-          </button>
+          </div>
         </Field>
 
         {/* Activity picker (Req 3.2) */}
@@ -252,33 +305,6 @@ export function LogDialog({
             placeholder={COPY.notePlaceholder}
           />
         </Field>
-
-        {/* Upload progress (Req 3.5) */}
-        {uploading && (
-          <div
-            role="status"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-              color: "var(--color-text-muted)",
-              fontSize: 14,
-            }}
-          >
-            <Loader2 size={16} className="spin" />
-            Uploading your photo…
-          </div>
-        )}
-
-        {errors.form && (
-          <p role="alert" style={{ margin: 0, color: "var(--color-danger)", fontSize: 14 }}>
-            {errors.form}
-          </p>
-        )}
-
-        <Button type="submit" disabled={uploading}>
-          {uploading ? "Logging…" : LABELS.logIt}
-        </Button>
       </form>
     </Dialog>
   );
