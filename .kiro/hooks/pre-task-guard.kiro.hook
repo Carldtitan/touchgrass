@@ -1,0 +1,12 @@
+{
+  "name": "Pre-Task Planning Guard",
+  "version": "1.0.0",
+  "description": "Before starting a task, notes which requirement it implements and which Kane flow will verify it, planning the flow if one is needed but missing.",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before starting this task, note:\n1. Which requirement(s) does this task implement?\n2. Which Kane testmd flow (if any) will verify it after completion?\n   - Auth tasks (4.1, 4.2) → auth_test.md\n   - Log/feed tasks (5.1, 5.2, 5.4) → log_hangout_test.md\n   - Leaderboard (6.1) → leaderboard_test.md\n   - Profile/badges (6.3) → profile_badges_test.md\n   - Streak/skip-a-day (6.5) → streak_test.md\n   - Pure test tasks (4.3, 5.3, 5.5–5.8, 6.2, 6.4) → no Kane needed\n3. If this task adds user-facing behavior and no matching Kane flow exists yet in .testmuai/tests/, plan to author one after implementation.\n\nState the mapping clearly, then proceed with the task."
+  }
+}

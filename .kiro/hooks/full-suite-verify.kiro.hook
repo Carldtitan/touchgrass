@@ -1,0 +1,12 @@
+{
+  "name": "Full Kane Suite (Manual)",
+  "version": "1.0.0",
+  "description": "Manually triggered full Kane verification of all Track B/C flows. Use before demo or after merging to confirm everything is green. Requires the dev server running on http://localhost:3000.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run typecheck && npm run test -- --run && kane-cli testmd run .testmuai/tests/config_error_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/auth_test.md --agent --headless --timeout 120 && kane-cli testmd run .testmuai/tests/log_hangout_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/leaderboard_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/profile_badges_test.md --agent --headless --timeout 180 && kane-cli testmd run .testmuai/tests/streak_test.md --agent --headless --timeout 180"
+  }
+}
