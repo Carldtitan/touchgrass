@@ -15,7 +15,7 @@ Self-contained: signs up its own fresh user first.
 Go to http://localhost:3000
 
 ## Step 2
-Sign up a fresh user: click "Sign up", enter a unique email like kane-log-20260530@example.com, password grass1234, and display name Kane Logger, then submit.
+Sign up a fresh user: click "Sign up", enter a fresh unique email that is different on every run by including a large random number, for example kane-log-<random-number>@example.com (generate a new random number each run), password grass1234, and display name Kane Logger, then submit.
 
 ## Step 3
 Open the log dialog by clicking the center Log control in the bottom navigation bar.

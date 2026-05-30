@@ -16,7 +16,7 @@ Go to http://localhost:3000
 Click the "Sign up" control to open the sign up form.
 
 ## Step 3
-Enter a unique email like kane-user-20260530@example.com, a password of at least 8 characters like grass1234, and a display name like Kane Tester.
+Enter a fresh unique email that is different on every run by including a large random number, for example kane-user-<random-number>@example.com (generate a new random number each run), a password of at least 8 characters like grass1234, and a display name like Kane Tester.
 
 ## Step 4
 Submit the sign up form by clicking "Sign up".

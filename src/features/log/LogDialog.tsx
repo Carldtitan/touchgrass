@@ -92,49 +92,56 @@ export function LogDialog({
   return (
     <Dialog open={open} onClose={uploading ? () => undefined : onClose} title="Log a hangout">
       <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "var(--space-4)" }}>
-        {/* Photo input (Req 3.2, 10.2) */}
+        {/* Photo input (Req 3.2, 10.2) — a real, visible file input so it can
+            be set both by a person and programmatically by an automated agent. */}
         <Field label="Photo" htmlFor="hangout-photo" error={errors.photo}>
-          <input
-            ref={fileInputRef}
-            id="hangout-photo"
-            name="photo"
-            type="file"
-            accept="image/*"
-            onChange={handleFile}
-            style={{ display: "none" }}
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              border: "1px dashed var(--color-border)",
-              borderRadius: "var(--radius)",
-              padding: previewUrl ? 0 : "var(--space-8)",
-              background: "var(--color-surface)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "var(--space-2)",
-              color: "var(--color-text-muted)",
-              overflow: "hidden",
-              minHeight: 120,
-            }}
-          >
-            {previewUrl ? (
+          <div style={{ display: "grid", gap: "var(--space-2)" }}>
+            {previewUrl && (
               <img
                 src={previewUrl}
                 alt="Selected hangout preview"
-                style={{ width: "100%", maxHeight: 240, objectFit: "cover" }}
+                style={{
+                  width: "100%",
+                  maxHeight: 240,
+                  objectFit: "cover",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid var(--color-border)",
+                }}
               />
-            ) : (
-              <>
-                <ImagePlus size={28} />
-                <span style={{ fontWeight: 600 }}>Add a photo from your hangout</span>
-              </>
             )}
-          </button>
+            <input
+              ref={fileInputRef}
+              id="hangout-photo"
+              name="photo"
+              type="file"
+              accept="image/*"
+              onChange={handleFile}
+              style={{
+                width: "100%",
+                padding: "var(--space-4)",
+                borderRadius: "var(--radius)",
+                border: "1px dashed var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-text)",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            />
+            {!previewUrl && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "var(--space-2)",
+                  color: "var(--color-text-muted)",
+                  fontSize: 13,
+                }}
+              >
+                <ImagePlus size={16} />
+                Add a photo from your hangout
+              </span>
+            )}
+          </div>
         </Field>
 
         {/* Activity picker (Req 3.2) */}
