@@ -1,6 +1,8 @@
-// RepositoriesContext — composition root for the repository layer.
-// Production mounts the Supabase repositories; tests can inject the in-memory fakes.
-import { createContext, useContext, type ReactNode } from "react";
+// RepositoriesContext — context + hook for the repository layer.
+// The matching <RepositoriesProvider> lives in RepositoriesProvider.tsx; this
+// module stays component-free so React Fast Refresh treats it as a plain module
+// (react-refresh/only-export-components).
+import { createContext, useContext } from "react";
 import type { AuthRepo, Repositories } from "../data/repositories";
 
 // Track A's Repositories bundle is repo-agnostic and omits auth (the use-case
@@ -8,21 +10,7 @@ import type { AuthRepo, Repositories } from "../data/repositories";
 // and both factories (Supabase + in-memory) return it, so we extend here.
 export type AppRepositories = Repositories & { auth: AuthRepo };
 
-const RepositoriesContext = createContext<AppRepositories | null>(null);
-
-export function RepositoriesProvider({
-  repositories,
-  children,
-}: {
-  repositories: AppRepositories;
-  children: ReactNode;
-}) {
-  return (
-    <RepositoriesContext.Provider value={repositories}>
-      {children}
-    </RepositoriesContext.Provider>
-  );
-}
+export const RepositoriesContext = createContext<AppRepositories | null>(null);
 
 export function useRepositories(): AppRepositories {
   const repos = useContext(RepositoriesContext);
