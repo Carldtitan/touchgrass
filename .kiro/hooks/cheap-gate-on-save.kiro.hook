@@ -1,10 +1,14 @@
 {
+  "enabled": true,
   "name": "Cheap Gate on Save",
-  "version": "1.0.0",
   "description": "Runs typecheck, lint, and unit tests on every saved TS/TSX file to catch breakage before Kane ever fires.",
+  "version": "1",
   "when": {
     "type": "fileEdited",
-    "patterns": ["src/**/*.ts", "src/**/*.tsx"]
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ]
   },
   "then": {
     "type": "runCommand",

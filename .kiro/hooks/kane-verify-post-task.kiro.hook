@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Kane Verify After Task",
+  "description": "After a spec task completes, runs cheap checks then the matching Kane testmd flow if the task changed user-facing browser behavior.",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task just completed. First confirm the app builds and unit tests pass: npm run typecheck && npm run lint && npm run test -- --run. If they fail, fix those first and do NOT run Kane.\n\nIf they pass, decide whether this task changed user-facing browser behavior. The Kane command form is: kane-cli testmd run <path> --agent --headless --timeout <seconds> (timeout is in SECONDS). Make sure the dev server is running on http://localhost:3000 first.\n- Auth UI tasks 4.1, 4.2 -> .testmuai/tests/signup_test.md (also login_logout_test.md, empty_state_test.md), timeout 120\n- Log dialog / feed tasks 5.1, 5.2, 5.4 -> .testmuai/tests/log_hangout_test.md, timeout 180\n- Leaderboard task 6.1 -> .testmuai/tests/leaderboard_test.md, timeout 180\n- Profile / badges task 6.3 -> .testmuai/tests/profile_badges_test.md, timeout 180\n- Skip-a-day / streak task 6.5 -> .testmuai/tests/streak_test.md, timeout 180\n- Pure unit/property test tasks (4.3, 5.3, 5.5-5.8, 6.2, 6.4) -> skip Kane, say why.\n\nRead the final run_end line from the NDJSON (status passed/failed). If passed, report Verified with the run_dir path. If failed, read the reason and failing screenshot, fix the app code (NEVER the test), and re-run. Stop after 3 attempts and ask the human. Never put a raw dollar sign in a Kane objective; use USD or the number."
+  }
+}

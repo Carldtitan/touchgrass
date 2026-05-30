@@ -1,7 +1,8 @@
 {
+  "enabled": true,
   "name": "Full Kane Suite (Manual)",
-  "version": "1.0.0",
-  "description": "Manually triggered full Kane verification of all Track B/C flows. Use before demo or after merging to confirm everything is green. Requires the dev server running on http://localhost:3000.",
+  "description": "Manually triggered full Kane verification of all flows. Use before demo or after merging to confirm everything is green. Requires the dev server running on localhost:3000.",
+  "version": "1",
   "when": {
     "type": "userTriggered"
   },
