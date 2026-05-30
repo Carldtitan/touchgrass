@@ -13,6 +13,8 @@ env/
 
 # Node
 node_modules/
+dist/
+*.local
 
 # OS
 .DS_Store
