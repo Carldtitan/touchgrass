@@ -2,8 +2,8 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { RepositoriesProvider } from "../../hooks/RepositoriesContext";
-import { AuthProvider } from "../../hooks/useAuth";
+import { RepositoriesProvider } from "../../hooks/RepositoriesProvider";
+import { AuthProvider } from "../../hooks/AuthProvider";
 import { createInMemoryRepositories } from "../../data/inMemory";
 import { AuthScreen } from "./AuthScreen";
 import { LABELS } from "../../contracts/labels";

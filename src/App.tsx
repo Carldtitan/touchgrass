@@ -6,12 +6,10 @@ import { checkConfig } from "./data/config";
 import { createSupabaseRepositories } from "./data/supabaseRepositories";
 import { AppShell } from "./design-system/AppShell";
 import { ConfigError } from "./design-system/ConfigError";
-import {
-  RepositoriesProvider,
-  type AppRepositories,
-} from "./hooks/RepositoriesContext";
-import { AuthProvider } from "./hooks/useAuth";
-import { EvaluationClockProvider } from "./hooks/useEvaluationClock";
+import { RepositoriesProvider } from "./hooks/RepositoriesProvider";
+import { type AppRepositories } from "./hooks/RepositoriesContext";
+import { AuthProvider } from "./hooks/AuthProvider";
+import { EvaluationClockProvider } from "./hooks/EvaluationClockProvider";
 import { AppRoutes } from "./features/AppRoutes";
 
 export function App() {
