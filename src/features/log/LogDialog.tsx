@@ -93,8 +93,48 @@ export function LogDialog({
   const uploading = status === "uploading";
 
   return (
-    <Dialog open={open} onClose={uploading ? () => undefined : onClose} title="Log a hangout">
-      <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: "var(--space-4)" }}>
+    <Dialog
+      open={open}
+      onClose={uploading ? () => undefined : onClose}
+      title="Log a hangout"
+      footer={
+        <div style={{ display: "grid", gap: "var(--space-3)" }}>
+          {/* Upload progress (Req 3.5) */}
+          {uploading && (
+            <div
+              role="status"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                color: "var(--color-text-muted)",
+                fontSize: 14,
+              }}
+            >
+              <Loader2 size={16} className="spin" />
+              Uploading your photo…
+            </div>
+          )}
+          {errors.form && (
+            <p
+              role="alert"
+              style={{ margin: 0, color: "var(--color-danger)", fontSize: 14 }}
+            >
+              {errors.form}
+            </p>
+          )}
+          <Button type="submit" form="log-hangout-form" disabled={uploading}>
+            {uploading ? "Logging…" : LABELS.logIt}
+          </Button>
+        </div>
+      }
+    >
+      <form
+        id="log-hangout-form"
+        onSubmit={handleSubmit}
+        noValidate
+        style={{ display: "grid", gap: "var(--space-4)" }}
+      >
         {/* Photo input (Req 3.2, 10.2) — a real, visible file input so it can
             be set both by a person and programmatically by an automated agent. */}
         <Field label="Photo" htmlFor="hangout-photo" error={errors.photo}>
@@ -247,33 +287,6 @@ export function LogDialog({
             placeholder={COPY.notePlaceholder}
           />
         </Field>
-
-        {/* Upload progress (Req 3.5) */}
-        {uploading && (
-          <div
-            role="status"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-              color: "var(--color-text-muted)",
-              fontSize: 14,
-            }}
-          >
-            <Loader2 size={16} className="spin" />
-            Uploading your photo…
-          </div>
-        )}
-
-        {errors.form && (
-          <p role="alert" style={{ margin: 0, color: "var(--color-danger)", fontSize: 14 }}>
-            {errors.form}
-          </p>
-        )}
-
-        <Button type="submit" disabled={uploading}>
-          {uploading ? "Logging…" : LABELS.logIt}
-        </Button>
       </form>
     </Dialog>
   );
