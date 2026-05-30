@@ -1,7 +1,7 @@
 // Property 18: Initials avatar derivation (Requirement 9.6, task 7.5).
 // Color is derived deterministically from the display name; initials are stable.
 import { describe, it, expect } from "vitest";
-import { initialsOf, colorOf } from "./InitialsAvatar";
+import { initialsOf, colorOf } from "./initials";
 
 describe("InitialsAvatar derivation", () => {
   it("derives color deterministically from the display name", () => {
